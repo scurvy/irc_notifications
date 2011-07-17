@@ -6,7 +6,7 @@ class NotifierHook < Redmine::Hook::Listener
     @project = context[:project]
     @issue = context[:issue]
     @user = @issue.author
-    say "#{@user.login} created issue “#{@issue.subject}”. Comment: “#{truncate_words(@issue.description)}” #{PROTO}://#{Setting.host_name}/issues/#{@issue.id}"
+    say "#{@user.login} created issue “#{@issue.subject}” Comment: “#{truncate_words(@issue.description)}” #{PROTO}://#{Setting.host_name}/issues/#{@issue.id}"
   end
   
   def controller_issues_edit_after_save(context = { })
@@ -15,9 +15,11 @@ class NotifierHook < Redmine::Hook::Listener
     @journal = context[:journal]
     @user = @journal.user
     if @issue.closed? == true
-      say "#{@user.login} closed issue “#{@issue.subject}”. Comment: “#{truncate_words(@journal.notes)}”. #{PROTO}://#{Setting.host_name}/issues/#{@issue.id}"
+      say "#{@user.login} closed issue “#{@issue.subject}” Comment: “#{truncate_words(@journal.notes)}” #{PROTO}://#{Setting.host_name}/issues/#{@issue.id}"
+    else if @issue.reopened? == true
+      say "#{@user.login} reopened issue “#{@issue.subject}” Comment: “#{truncate_words(@journal.notes)}” #{PROTO}://#{Setting.host_name}/issues/#{@issue.id}"
     else
-      say "#{@user.login} edited issue “#{@issue.subject}”. Comment: “#{truncate_words(@journal.notes)}”. #{PROTO}://#{Setting.host_name}/issues/#{@issue.id}"
+      say "#{@user.login} updated issue “#{@issue.subject}” Comment: “#{truncate_words(@journal.notes)}” #{PROTO}://#{Setting.host_name}/issues/#{@issue.id}"
     end
   end
 
@@ -39,7 +41,7 @@ class NotifierHook < Redmine::Hook::Listener
     @project = context[:project]
     @page = context[:page]
     @user = @page.content.author
-    say "#{@user.login} edited the wiki “#{@page.pretty_title}” on #{@project.name}. #{PROTO}://#{Setting.host_name}/projects/#{@project.identifier}/wiki/#{@page.title}"
+    say "#{@user.login} edited the wiki “#{@page.pretty_title}” on #{@project.name} #{PROTO}://#{Setting.host_name}/projects/#{@project.identifier}/wiki/#{@page.title}"
   end
 
 private
