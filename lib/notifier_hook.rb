@@ -16,7 +16,7 @@ class NotifierHook < Redmine::Hook::Listener
     @user = @journal.user
     if @issue.closed? == true
       say "#{@user.login} closed issue “#{@issue.subject}” Comment: “#{truncate_words(@journal.notes)}” #{PROTO}://#{Setting.host_name}/issues/#{@issue.id}"
-    else if @issue.reopened? == true
+    elsif @issue.reopened? == true
       say "#{@user.login} reopened issue “#{@issue.subject}” Comment: “#{truncate_words(@journal.notes)}” #{PROTO}://#{Setting.host_name}/issues/#{@issue.id}"
     else
       say "#{@user.login} updated issue “#{@issue.subject}” Comment: “#{truncate_words(@journal.notes)}” #{PROTO}://#{Setting.host_name}/issues/#{@issue.id}"
