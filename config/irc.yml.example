@@ -1,0 +1,21 @@
+production:
+  server:     your.irc.server
+  port:       6667
+  nick:       yournick
+  user:       youruserident
+  password:   'optional'
+  channel:    '#yourchannel'
+  throttle:
+    interval: 5
+    count:    3
+
+development:
+  server:     your.irc.server
+  port:       6667
+  nick:       yournick
+  user:       youruserident
+  password:   'optional'
+  channel:    '#yourchannel'
+  throttle:
+    interval: 5
+    count:    3
