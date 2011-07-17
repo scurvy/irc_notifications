@@ -23,7 +23,7 @@ Installation
 
 -Clone this project
 
-`git clone http://github.com/scurvy/irc_notifications.git vendor/plugins/redmine_irc_notifications`
+`git clone http://github.com/scurvy/irc_notifications.git vendor/plugins/irc_notifications`
 
 - copy irc.yml.example into config/irc.yml with your IRC settings
 
