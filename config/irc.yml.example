@@ -14,7 +14,6 @@ development:
   port:       6667
   nick:       yournick
   user:       youruserident
-  password:   'optional'
   channel:    '#yourchannel'
   throttle:
     interval: 5

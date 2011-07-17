@@ -6,7 +6,8 @@ IRC Notifications for Redmine
 This Redmine plugin will send update messages to IRC channels every time an issue, message, or wiki is updated. It's not fancy but it works. It's hacked
 together from the following two projects:
 
-http://github.com/edouard/redmine_campfire_notifications.
+http://github.com/edouard/redmine_campfire_notifications
+
 https://github.com/mtah/redmine_irc_notifications  <-- This should work but it never did for me. Also doesn't support server passwords.
 
 **Note:** The plugin won't actually `JOIN` your channel, so you need to either set `-n` on the channel or modify the code.
@@ -29,3 +30,5 @@ Installation
 `cp vendor/plugins/redmine_irc_notifications/config/irc.yml.example config/irc.yml`
 
 -Edit your config/irc.yml file with the appropriate settings. The use of the password is optional. If you're not using it, delete the line.
+
+-Restart Redmine
