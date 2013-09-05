@@ -50,7 +50,7 @@ require 'socket'
             puts "IRC: connecting to server"
             sock = TCPSocket.open(@@server, @@port || 6667)
             sock.puts "PASS #{@@password}" if @@password
-            sock.puts "USER #{@@user} 0 * #{@@user}"
+            sock.puts "USER #{@@user} 0 * :#{@@user}"
             sock.puts "NICK #{@@nick}"
 
             unless nick_available?(sock)
@@ -66,6 +66,7 @@ require 'socket'
               end
             end
 
+            sock.puts "JOIN #{@@channel}"
             sock.puts "PRIVMSG #{@@channel} :#{message}"
           rescue => e
             puts "Error during IRC notification: #{e.message}"
@@ -88,6 +89,7 @@ require 'socket'
       options = YAML::load(File.open(File.join(Rails.root, 'config', 'irc.yml')))
       @@server = options[Rails.env]['server']
       @@nick = options[Rails.env]['nick']
+      @@port = options[Rails.env]['port'] if options[Rails.env]['port']
       @@user = options[Rails.env]['user']
       @@channel = options[Rails.env]['channel']
       @@nickserv = options[Rails.env]['nickserv']
