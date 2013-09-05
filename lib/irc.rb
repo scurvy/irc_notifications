@@ -88,6 +88,7 @@ require 'socket'
       options = YAML::load(File.open(File.join(Rails.root, 'config', 'irc.yml')))
       @@server = options[Rails.env]['server']
       @@nick = options[Rails.env]['nick']
+      @@port = options[Rails.env]['port'] if options[Rails.env]['port']
       @@user = options[Rails.env]['user']
       @@channel = options[Rails.env]['channel']
       @@nickserv = options[Rails.env]['nickserv']
