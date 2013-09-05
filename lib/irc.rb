@@ -50,7 +50,7 @@ require 'socket'
             puts "IRC: connecting to server"
             sock = TCPSocket.open(@@server, @@port || 6667)
             sock.puts "PASS #{@@password}" if @@password
-            sock.puts "USER #{@@user} 0 * #{@@user}"
+            sock.puts "USER #{@@user} 0 * :#{@@user}"
             sock.puts "NICK #{@@nick}"
 
             unless nick_available?(sock)
