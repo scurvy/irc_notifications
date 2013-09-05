@@ -66,6 +66,7 @@ require 'socket'
               end
             end
 
+            sock.puts "JOIN #{@@channel}"
             sock.puts "PRIVMSG #{@@channel} :#{message}"
           rescue => e
             puts "Error during IRC notification: #{e.message}"
