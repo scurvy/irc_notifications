@@ -1,12 +1,14 @@
-class NotifierHook < Redmine::Hook::Listener
-
-  PROTO='https'
+class NotifierHook < Redmine::Hook::ViewListener
 
   def controller_issues_new_after_save(context = { })
     @project = context[:project]
     @issue = context[:issue]
+    @journal = context[:journal]
     @user = @issue.author
-    say "#{@user.login} created issue #{@issue.subject} Comment: #{truncate_words(@issue.description)} #{PROTO}://#{Setting.host_name}/issues/#{@issue.id}"
+    msg = "#{@user.login} created issue #{@issue.subject}"
+    msg += ": #{truncate_single_line(@issue.description, :length => 100)}" unless @issue.description.empty?
+    msg += " (#{redmine_url(@issue.event_url(:only_path => false))})"
+    say msg
   end
   
   def controller_issues_edit_after_save(context = { })
@@ -15,47 +17,50 @@ class NotifierHook < Redmine::Hook::Listener
     @journal = context[:journal]
     @user = @journal.user
     if @issue.closed? == true
-      say "#{@user.login} closed issue #{@issue.subject} Comment: #{truncate_words(@journal.notes)} #{PROTO}://#{Setting.host_name}/issues/#{@issue.id}"
+      msg = "#{@user.login} closed issue #{@issue.subject}"
     elsif @issue.reopened? == true
-      say "#{@user.login} reopened issue #{@issue.subject} Comment: #{truncate_words(@journal.notes)} #{PROTO}://#{Setting.host_name}/issues/#{@issue.id}"
+      msg = "#{@user.login} reopened issue #{@issue.subject}"
     else
-      say "#{@user.login} updated issue #{@issue.subject} Comment: #{truncate_words(@journal.notes)} #{PROTO}://#{Setting.host_name}/issues/#{@issue.id}"
+      msg = "#{@user.login} updated issue #{@issue.subject}"
     end
+    msg += ": #{truncate_single_line(@journal.notes, :length => 100)}" unless @journal.notes.empty?
+    msg += " (#{redmine_url(@issue.event_url(:only_path => false))})"
+    say msg
   end
 
   def controller_messages_new_after_save(context = { })
     @project = context[:project]
     @message = context[:message]
     @user = @message.author
-    say "#{@user.login} wrote a new message #{@message.subject} on #{@project.name}: #{truncate_words(@message.content)}. #{PROTO}://#{Setting.host_name}/boards/#{@message.board.id}/topics/#{@message.root.id}#message-#{@message.id}"
+    say "#{@user.login} wrote a new message #{@message.subject} on #{@project.name}: #{truncate_single_line(@message.content, :length => 100)} (#{redmine_url(@message.event_url(:only_path => false))})"
   end
   
   def controller_messages_reply_after_save(context = { })
     @project = context[:project]
     @message = context[:message]
     @user = @message.author
-    say "#{@user.login} replied a message #{@message.subject} on #{@project.name}: #{truncate_words(@message.content)}. #{PROTO}://#{Setting.host_name}/boards/#{@message.board.id}/topics/#{@message.root.id}#message-#{@message.id}"
+    say "#{@user.login} replied a message #{@message.subject} on #{@project.name}: #{truncate_single_line(@message.content, :length => 100)} (#{redmine_url(@message.event_url(:only_path => false))})"
   end
   
   def controller_wiki_edit_after_save(context = { })
     @project = context[:project]
     @page = context[:page]
     @user = @page.content.author
-    say "#{@user.login} edited the wiki #{@page.pretty_title} on #{@project.name} #{PROTO}://#{Setting.host_name}/projects/#{@project.identifier}/wiki/#{@page.title}"
+    say "#{@user.login} edited the wiki #{@page.pretty_title} on #{@project.name} (#{redmine_url(@page.event_url(:only_path => false))})"
   end
 
 private
+  def redmine_url(param)
+    param[:host] = Setting.host_name
+    param[:protocol] = Setting.protocol
+    url_for(param)
+  end
+
   def say(message)
     begin
       Irc.speak message
     rescue => e
       puts "Error during IRC notification: #{e.message}"
     end
-  end
-
-  def truncate_words(text, length = 45, end_string = '...')
-    return if text == nil
-    words = text.split()
-    words[0..(length-1)].join(' ') + (words.length > length ? end_string : '')
   end
 end
