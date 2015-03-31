@@ -9,22 +9,28 @@ require 'socket'
     @@nickserv = nil
     @@throttle = nil
     @@password = nil
+    @@mapping  = nil
+    @@notice   = nil
+    @@ssl      = nil
 
     @@mutex = Mutex.new
-    @@last_disconnect = 0
+    @@last_disconnect  = 0
     @@throttle_counter = 0
 
-    def self.speak(message)
+    def self.speak(message, project_id)
       return if message.nil? || message.empty?
-
+      
       Thread.new do
         @@mutex.synchronize do
           begin
             puts "IRC: reading configs"
-            load_options unless @@server && @@nick && @@user && @@channel
-            raise ArgumentError, 'server, nick, user and channel must be set' if @@server.nil? || @@nick.nil? || @@user.nil? || @@channel.nil?
+            load_options unless @@server && @@nick && @@user && @@mapping
+            raise ArgumentError, 'server, nick, user and channel must be set' if @@server.nil? || @@nick.nil? || @@user.nil? || @@mapping.nil?
             raise ArgumentError, 'NickServ password must be set' if @@nickserv && @@nickserv['password'].nil?
             raise ArgumentError, 'Throttle count must be >= 1' if @@throttle && @@throttle['count'] && @@throttle['count'].to_i < 1
+            return if @@mapping && @@mapping[project_id].nil?
+
+            @@channel = @@mapping[project_id]
 
             if @@throttle && @@throttle['interval']
               sleep_time = @@throttle['interval'].to_i - (Time.now.to_i - @@last_disconnect)
@@ -49,6 +55,16 @@ require 'socket'
 
             puts "IRC: connecting to server"
             sock = TCPSocket.open(@@server, @@port || 6667)
+            if @@ssl then
+              require 'openssl'
+
+              ssl = OpenSSL::SSL::SSLContext.new
+              ssl.verify_mode = OpenSSL::SSL::VERIFY_NONE
+              sock = OpenSSL::SSL::SSLSocket.new(sock, ssl)
+              sock.sync = true
+              sock.sync_close = true
+              sock.connect
+            end
             sock.puts "PASS #{@@password}" if @@password
             sock.puts "USER #{@@user} 0 * :#{@@user}"
             sock.puts "NICK #{@@nick}"
@@ -66,8 +82,24 @@ require 'socket'
               end
             end
 
+            while v = sock.gets("\r\n") do
+              if v =~ /End of \/MOTD command/ then
+                break
+              end
+            end
+
+            sleep 1
+
             sock.puts "JOIN #{@@channel}"
-            sock.puts "PRIVMSG #{@@channel} :#{message}"
+            while v = sock.gets("\r\n") do
+              if v =~ /End of \/NAMES list/ then
+                break
+              end
+
+              msg = "#{@@channel} :#{message}"
+              msg = "NOTICE #{msg}" if @@notice
+              sock.puts msg
+            end
           rescue => e
             puts "Error during IRC notification: #{e.message}"
           ensure
@@ -86,15 +118,17 @@ require 'socket'
 
     private
     def self.load_options
-      options = YAML::load(File.open(File.join(Rails.root, 'config', 'irc.yml')))
-      @@server = options[Rails.env]['server']
-      @@nick = options[Rails.env]['nick']
-      @@port = options[Rails.env]['port'] if options[Rails.env]['port']
-      @@user = options[Rails.env]['user']
-      @@channel = options[Rails.env]['channel']
+      options    = YAML::load(File.open(File.join(Rails.root, 'config', 'irc.yml')))
+      @@server   = options[Rails.env]['server']
+      @@nick     = options[Rails.env]['nick']
+      @@port     = options[Rails.env]['port'] if options[Rails.env]['port']
+      @@user     = options[Rails.env]['user']
       @@nickserv = options[Rails.env]['nickserv']
       @@throttle = options[Rails.env]['throttle']
       @@password = options[Rails.env]['password'] if options[Rails.env]['password']
+      @@mapping  = options[Rails.env]['mapping']
+      @@notice   = options[Rails.env]['notice'] || true
+      @@ssl      = options[Rails.env]['ssl'] || false
     end
 
     def self.nick_available?(sock)
