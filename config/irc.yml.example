@@ -1,10 +1,12 @@
 production:
   server:     your.irc.server
   port:       6667
+  ssl:        true
   nick:       yournick
   user:       youruserident
   password:   'optional'
   channel:    '#yourchannel'
+  notice:     true
   throttle:
     interval: 5
     count:    3
@@ -12,9 +14,11 @@ production:
 development:
   server:     your.irc.server
   port:       6667
+  ssl:        false
   nick:       yournick
   user:       youruserident
   channel:    '#yourchannel'
+  notice:     true
   throttle:
     interval: 5
     count:    3
