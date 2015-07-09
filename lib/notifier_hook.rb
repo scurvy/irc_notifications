@@ -6,11 +6,11 @@ class NotifierHook < Redmine::Hook::ViewListener
     @journal = context[:journal]
     @user = @issue.author
     msg = "#{@user.login} created issue #{@issue.subject}"
-    msg += ": #{truncate_single_line(@issue.description, :length => 100)}" unless @issue.description.empty?
+    msg += ": #{truncate_single_line_raw(@issue.description, 100)}" unless @issue.description.empty?
     msg += " (#{redmine_url(@issue.event_url(:only_path => false))})"
     say msg
   end
-  
+
   def controller_issues_edit_after_save(context = { })
     @project = context[:project]
     @issue = context[:issue]
@@ -23,7 +23,7 @@ class NotifierHook < Redmine::Hook::ViewListener
     else
       msg = "#{@user.login} updated issue #{@issue.subject}"
     end
-    msg += ": #{truncate_single_line(@journal.notes, :length => 100)}" unless @journal.notes.empty?
+    msg += ": #{truncate_single_line_raw(@journal.notes, 100)}" unless @journal.notes.empty?
     msg += " (#{redmine_url(@issue.event_url(:only_path => false))})"
     say msg
   end
@@ -32,16 +32,16 @@ class NotifierHook < Redmine::Hook::ViewListener
     @project = context[:project]
     @message = context[:message]
     @user = @message.author
-    say "#{@user.login} wrote a new message #{@message.subject} on #{@project.name}: #{truncate_single_line(@message.content, :length => 100)} (#{redmine_url(@message.event_url(:only_path => false))})"
+    say "#{@user.login} wrote a new message #{@message.subject} on #{@project.name}: #{truncate_single_line_raw(@message.content, 100)} (#{redmine_url(@message.event_url(:only_path => false))})"
   end
-  
+
   def controller_messages_reply_after_save(context = { })
     @project = context[:project]
     @message = context[:message]
     @user = @message.author
-    say "#{@user.login} replied a message #{@message.subject} on #{@project.name}: #{truncate_single_line(@message.content, :length => 100)} (#{redmine_url(@message.event_url(:only_path => false))})"
+    say "#{@user.login} replied a message #{@message.subject} on #{@project.name}: #{truncate_single_line_raw(@message.content, 100)} (#{redmine_url(@message.event_url(:only_path => false))})"
   end
-  
+
   def controller_wiki_edit_after_save(context = { })
     @project = context[:project]
     @page = context[:page]
